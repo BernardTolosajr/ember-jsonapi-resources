@@ -43,147 +43,147 @@ test('#find calls #findOne when options arg is an object having an id property',
   assert.ok(adapter.findOne.calledWith(options.id, options.query), 'findOne called with `"1"` and query `{"sort": "-date"}`');
 });
 
-test('#find calls #findQuery when options arg is undefined', function(assert) {
-  const adapter = this.subject();
-  sandbox.stub(adapter, 'findQuery', function () { return Ember.RSVP.Promise.resolve(null); });
-  let promise = adapter.find(undefined);
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(adapter.findQuery.calledOnce, 'findQuery called');
-});
+  test('#find calls #findQuery when options arg is undefined', function(assert) {
+    const adapter = this.subject();
+    sandbox.stub(adapter, 'findQuery', function () { return Ember.RSVP.Promise.resolve(null); });
+    let promise = adapter.find(undefined);
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(adapter.findQuery.calledOnce, 'findQuery called');
+  });
 
-test('#find calls #findQuery with options object (that has no id property)', function(assert) {
-  const adapter = this.subject();
-  sandbox.stub(adapter, 'findQuery', function () { return Ember.RSVP.Promise.resolve(null); });
-  let options = { query: {sort: '-date'} };
-  let promise = adapter.find(options);
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(adapter.findQuery.calledOnce, 'findQuery called');
-  assert.ok(adapter.findQuery.calledWith(options), 'findQuery called with query `{"sort": "-date"}`');
-});
+  test('#find calls #findQuery with options object (that has no id property)', function(assert) {
+    const adapter = this.subject();
+    sandbox.stub(adapter, 'findQuery', function () { return Ember.RSVP.Promise.resolve(null); });
+    let options = { query: {sort: '-date'} };
+    let promise = adapter.find(options);
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(adapter.findQuery.calledOnce, 'findQuery called');
+    assert.ok(adapter.findQuery.calledWith(options), 'findQuery called with query `{"sort": "-date"}`');
+  });
 
-test('#findOne calls #fetch with url and options object with method:GET', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let promise = adapter.findOne('1');
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(adapter.fetch.calledOnce, 'fetch called');
-  assert.ok(adapter.fetch.calledWith('/posts/1', { method: 'GET' }), 'fetch called with url and method:GET');
-});
+  test('#findOne calls #fetch with url and options object with method:GET', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let promise = adapter.findOne('1');
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(adapter.fetch.calledOnce, 'fetch called');
+    assert.ok(adapter.fetch.calledWith('/posts/1', { method: 'GET' }), 'fetch called with url and method:GET');
+  });
 
-test('#findQuery calls #fetch url and options object with method:GET', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let promise = adapter.findQuery();
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(adapter.fetch.calledOnce, 'fetch called');
-  assert.ok(adapter.fetch.calledWith('/posts', { method: 'GET' }), 'fetch called with url and method:GET');
-});
+  test('#findQuery calls #fetch url and options object with method:GET', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let promise = adapter.findQuery();
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(adapter.fetch.calledOnce, 'fetch called');
+    assert.ok(adapter.fetch.calledWith('/posts', { method: 'GET' }), 'fetch called with url and method:GET');
+  });
 
-test('#findQuery calls #fetch url including a query', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let promise = adapter.findQuery({ query: { sort:'-desc' } });
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(adapter.fetch.calledOnce, 'fetch called');
-  assert.ok(adapter.fetch.calledWith('/posts?sort=-desc', { method: 'GET' }), 'fetch called with url?query and method:GET');
-});
+  test('#findQuery calls #fetch url including a query', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let promise = adapter.findQuery({ query: { sort:'-desc' } });
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(adapter.fetch.calledOnce, 'fetch called');
+    assert.ok(adapter.fetch.calledWith('/posts?sort=-desc', { method: 'GET' }), 'fetch called with url?query and method:GET');
+  });
 
-test('#findRelated', function(assert) {
-  this.container.register('service:authors', Adapter.extend({type: 'authors', url: '/authors'}));
-  let resource = this.container.lookupFactory('model:posts').create(postMock.data);
-  let url = resource.get( ['relationships', 'author', 'links', 'related'].join('.') );
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  let service = this.container.lookup('service:authors');
-  sandbox.stub(service, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let promise = adapter.findRelated('author', url);
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(service.fetch.calledOnce, 'authors service#fetch method called');
-  let expectURL = 'http://api.pixelhandler.com/api/v1/posts/1/author';
-  assert.ok(service.fetch.calledWith(expectURL, { method: 'GET' }), 'url for relation passed to service#fetch');
-});
+  test('#findRelated', function(assert) {
+    this.container.register('service:authors', Adapter.extend({type: 'authors', url: '/authors'}));
+    let resource = this.container.lookupFactory('model:posts').create(postMock.data);
+    let url = resource.get( ['relationships', 'author', 'links', 'related'].join('.') );
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    let service = this.container.lookup('service:authors');
+    sandbox.stub(service, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let promise = adapter.findRelated('author', url);
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(service.fetch.calledOnce, 'authors service#fetch method called');
+    let expectURL = 'http://api.pixelhandler.com/api/v1/posts/1/author';
+    assert.ok(service.fetch.calledWith(expectURL, { method: 'GET' }), 'url for relation passed to service#fetch');
+  });
 
-test('#createResource', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  adapter.serializer = { serialize: function () { return postMock; } };
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let promise = adapter.createResource({ type: 'b0gus, not testing serializer' });
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(adapter.fetch.calledOnce, '#fetch method called');
-  let msg = '#fetch called with url and options with data';
-  assert.ok(adapter.fetch.calledWith('/posts', { method: 'POST', body: JSON.stringify(postMock) }), msg);
-});
+  test('#createResource', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    adapter.serializer = { serialize: function () { return postMock; } };
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let promise = adapter.createResource({ type: 'b0gus, not testing serializer' });
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(adapter.fetch.calledOnce, '#fetch method called');
+    let msg = '#fetch called with url and options with data';
+    assert.ok(adapter.fetch.calledWith('/posts', { method: 'POST', body: JSON.stringify(postMock) }), msg);
+  });
 
-test('#updateResource', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  let payload = {
-    data: {
-      type: postMock.data.type,
-      id: postMock.data.id,
-      attributes: {
-        title: postMock.data.attributes.title + ' changed'
+  test('#updateResource', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    let payload = {
+      data: {
+        type: postMock.data.type,
+        id: postMock.data.id,
+        attributes: {
+          title: postMock.data.attributes.title + ' changed'
+        }
       }
-    }
-  };
-  adapter.serializer = { serializeChanged: function () { return payload; } };
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let resource = this.container.lookupFactory('model:posts').create(postMock.data);
-  let promise = adapter.updateResource(resource);
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(adapter.fetch.calledOnce, '#fetch method called');
-  let selfURL = 'http://api.pixelhandler.com/api/v1/posts/1';
-  let msg = '#fetch called with url and options with data';
-  assert.ok(adapter.fetch.calledWith(selfURL, { method: 'PATCH', body: JSON.stringify(payload) }), msg);
-});
+    };
+    adapter.serializer = { serializeChanged: function () { return payload; } };
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let resource = this.container.lookupFactory('model:posts').create(postMock.data);
+    let promise = adapter.updateResource(resource);
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(adapter.fetch.calledOnce, '#fetch method called');
+    let selfURL = 'http://api.pixelhandler.com/api/v1/posts/1';
+    let msg = '#fetch called with url and options with data';
+    assert.ok(adapter.fetch.calledWith(selfURL, { method: 'PATCH', body: JSON.stringify(payload) }), msg);
+  });
 
-test('#updateResource returns null when serializer returns null (nothing changed)', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  adapter.serializer = { serializeChanged: function () { return null; } };
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let resource = this.container.lookupFactory('model:posts').create(postMock.data);
-  let promise = adapter.updateResource(resource);
-  assert.equal(promise, null, 'null returned instead of promise');
-  assert.ok(!adapter.fetch.calledOnce, '#fetch method NOT called');
-});
+  test('#updateResource returns null when serializer returns null (nothing changed)', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    adapter.serializer = { serializeChanged: function () { return null; } };
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let resource = this.container.lookupFactory('model:posts').create(postMock.data);
+    let promise = adapter.updateResource(resource);
+    assert.equal(promise, null, 'null returned instead of promise');
+    assert.ok(!adapter.fetch.calledOnce, '#fetch method NOT called');
+  });
 
-test('#patchRelationship', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let resource = this.container.lookupFactory('model:posts').create(postMock.data);
-  resource.addRelationship('comments', '1');
-  let promise = adapter.patchRelationship(resource, 'comments');
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  let relationURL = 'http://api.pixelhandler.com/api/v1/posts/1/relationships/comments';
-  let jsonBody = '[{"type":"comments","id":"1"}]';
-  let msg = '#fetch called with url and options with data';
-  assert.ok(adapter.fetch.calledWith(relationURL, { method: 'PATCH', body: jsonBody }), msg);
-});
+  test('#patchRelationship', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let resource = this.container.lookupFactory('model:posts').create(postMock.data);
+    resource.addRelationship('comments', '1');
+    let promise = adapter.patchRelationship(resource, 'comments');
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    let relationURL = 'http://api.pixelhandler.com/api/v1/posts/1/relationships/comments';
+    let jsonBody = '[{"type":"comments","id":"1"}]';
+    let msg = '#fetch called with url and options with data';
+    assert.ok(adapter.fetch.calledWith(relationURL, { method: 'PATCH', body: jsonBody }), msg);
+  });
 
-test('#deleteResource can be called with a string as the id for the resource', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let promise = adapter.deleteResource('1');
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  let msg = '#fetch called with url';
-  assert.ok(adapter.fetch.calledWith('/posts/1', { method: 'DELETE' }), msg);
-});
+  test('#deleteResource can be called with a string as the id for the resource', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let promise = adapter.deleteResource('1');
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    let msg = '#fetch called with url';
+    assert.ok(adapter.fetch.calledWith('/posts/1', { method: 'DELETE' }), msg);
+  });
 
-test('#deleteResource can be called with a resource having a self link, and calls resource#destroy', function(assert) {
-  const adapter = this.subject({type: 'posts', url: '/posts'});
-  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
-  let resource = this.container.lookupFactory('model:posts').create(postMock.data);
-  sandbox.stub(resource, 'destroy', function () {});
-  let promise = adapter.deleteResource(resource);
-  assert.ok(typeof promise.then === 'function', 'returns a thenable');
-  assert.ok(resource.destroy.calledOnce, 'resource#destroy method called');
-  let selfURL = 'http://api.pixelhandler.com/api/v1/posts/1';
-  let msg = '#fetch called with url';
-  assert.ok(adapter.fetch.calledWith(selfURL, { method: 'DELETE' }), msg);
-});
+  test('#deleteResource can be called with a resource having a self link, and calls resource#destroy', function(assert) {
+    const adapter = this.subject({type: 'posts', url: '/posts'});
+    sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve(null); });
+    let resource = this.container.lookupFactory('model:posts').create(postMock.data);
+    sandbox.stub(resource, 'destroy', function () {});
+    let promise = adapter.deleteResource(resource);
+    assert.ok(typeof promise.then === 'function', 'returns a thenable');
+    assert.ok(resource.destroy.calledOnce, 'resource#destroy method called');
+    let selfURL = 'http://api.pixelhandler.com/api/v1/posts/1';
+    let msg = '#fetch called with url';
+    assert.ok(adapter.fetch.calledWith(selfURL, { method: 'DELETE' }), msg);
+  });
 
-test('#fetch calls #fetchURL to customize if needed', function(assert) {
+  test('#fetch calls #fetchURL to customize if needed', function(assert) {
   const adapter = this.subject({type: 'posts', url: '/posts'});
   sandbox.stub(adapter, 'fetchUrl', function () {});
-  sandbox.stub(window, 'fetch', function () { return Ember.RSVP.Promise.resolve({ "status": 204 }); });
+  sandbox.stub(adapter, 'fetch', function () { return Ember.RSVP.Promise.resolve({ "status": 204 }); });
   let promise = adapter.fetch('/posts', { method: 'PATCH', body: 'json string here' });
   assert.ok(typeof promise.then === 'function', 'returns a thenable');
   assert.ok(adapter.fetchUrl.calledWith('/posts'), '#fetchUrl called with url');
@@ -192,7 +192,7 @@ test('#fetch calls #fetchURL to customize if needed', function(assert) {
 test('#fetch calls #fetchOptions checking if the request is an update, if true skips call to deserialize/cacheResource', function(assert) {
   const adapter = this.subject({type: 'posts', url: '/posts'});
   sandbox.stub(adapter, 'fetchUrl', function () {});
-  sandbox.stub(window, 'fetch', function () {
+  sandbox.stub(adapter, 'fetch', function () {
     return Ember.RSVP.Promise.resolve({
       "status": 202,
       "json": function() {

@@ -3,6 +3,7 @@
   @submodule adapter
 **/
 
+import _fetch from 'fetch';
 import Ember from 'ember';
 import { pluralize } from 'ember-inflector';
 
@@ -192,7 +193,7 @@ export default Ember.Object.extend(Ember.Evented, {
     url = this.fetchUrl(url);
     const _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
-      window.fetch(url, options).then(function(resp) {
+      _fetch(url, options).then(function(resp) {
         if (resp.status >= 500) {
           let msg = 'The Service responded with a '+ resp.status +' error.';
           reject(new ServerError(msg, resp));
